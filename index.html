@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>윤활유 및 석유제품 계산 솔루션 WebApp</title>
+    
+    <!-- PWA / Web App Settings -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="석유계산기">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
+    
+    <!-- Inline Web Manifest for PWA Support -->
+    <link rel="manifest" id="manifest-placeholder">
+
+    <!-- External Libraries (CDNs) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-active { 
+            border-bottom: 3px solid #2563eb; 
+            color: #2563eb; 
+            font-weight: 700; 
+        }
+        .card { 
+            background: #ffffff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-12 select-none">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-5 px-4 mb-6 shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-600 rounded-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-tight text-white leading-tight">
+                        윤활유 및 석유제품 계산기
+                    </h1>
+                    <p class="text-xs text-slate-400">ASTM D2270 / Refutas / 15℃ 비중 보정</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportCSV()" title="CSV 저장" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 md:px-3 md:py-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="hidden md:inline">CSV 내보내기</span>
+                </button>
+                <button onclick="window.print()" title="인쇄" class="bg-blue-600 hover:bg-blue-700 text-white p-2 md:px-3 md:py-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    <span class="hidden md:inline">PDF / 인쇄</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4">
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 mb-6 bg-white rounded-xl px-2 pt-1 shadow-sm overflow-x-auto no-scrollbar">
+            <button id="tab1-btn" onclick="switchTab('tab1')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap tab-active">1. 2종 기본유 혼합</button>
+            <button id="tab2-btn" onclick="switchTab('tab2')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">2. 목표 점도 비율 역계산</button>
+            <button id="tab3-btn" onclick="switchTab('tab3')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">3. 2~4종 다성분 혼합</button>
+            <button id="tab4-btn" onclick="switchTab('tab4')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">4. ASTM D2270 점도지수(VI)</button>
+            <button id="tab5-btn" onclick="switchTab('tab5')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">5. 15℃ 비중 환산</button>
+        </div>
+
+        <!-- TAB 1: 2-Base Oil Blend -->
+        <div id="tab1" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-5 lg:col-span-1">
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">기본유 정보 입력</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Base Oil #1 점도 (cSt)</label>
+                        <input type="number" id="t1-v1" value="32.0" step="0.1" oninput="calcTab1()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Base Oil #2 점도 (cSt)</label>
+                        <input type="number" id="t1-v2" value="100.0" step="0.1" oninput="calcTab1()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                            <span>Base Oil #1 비율 (%)</span>
+                            <span id="t1-r1-val" class="text-blue-600 font-bold">60%</span>
+                        </div>
+                        <input type="range" id="t1-r1" min="0" max="100" value="60" oninput="calcTab1()" class="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Oil #2 비율: <span id="t1-r2-val" class="font-semibold text-slate-600">40%</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-5 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">혼합 점도 예측 결과</h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold uppercase text-blue-600 tracking-wider">최종 혼합 동점도</span>
+                            <div class="text-2xl md:text-3xl font-extrabold text-blue-900 mt-1" id="t1-result">48.32 cSt</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-500">Refutas VBI</span>
+                            <div class="text-base font-semibold text-slate-700" id="t1-vbi">33.24</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-56 md:h-64">
+                    <canvas id="tab1Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Target Blend Ratio -->
+        <div id="tab2" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-5 lg:col-span-1">
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">목표 점도 조건 입력</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Base Oil #1 점도 (cSt)</label>
+                        <input type="number" id="t2-v1" value="30.0" step="0.1" oninput="calcTab2()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Base Oil #2 점도 (cSt)</label>
+                        <input type="number" id="t2-v2" value="90.0" step="0.1" oninput="calcTab2()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">목표 혼합 점도 (Desired cSt)</label>
+                        <input type="number" id="t2-vt" value="46.0" step="0.1" oninput="calcTab2()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-5 lg:col-span-2">
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">필요 혼합 비율 산출</h2>
+                <div id="t2-error" class="hidden bg-red-50 text-red-700 p-4 rounded-lg text-xs mb-4">
+                    ⚠️ 목표 점도는 Base Oil #1과 #2 점도 사이의 값이어야 합니다.
+                </div>
+                <div id="t2-success" class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-slate-50 border p-4 rounded-xl text-center">
+                        <span class="text-xs font-semibold text-slate-500">Base Oil #1 비율</span>
+                        <div class="text-2xl md:text-3xl font-bold text-blue-600 mt-2" id="t2-r1-res">59.07 %</div>
+                    </div>
+                    <div class="bg-slate-50 border p-4 rounded-xl text-center">
+                        <span class="text-xs font-semibold text-slate-500">Base Oil #2 비율</span>
+                        <div class="text-2xl md:text-3xl font-bold text-indigo-600 mt-2" id="t2-r2-res">40.93 %</div>
+                    </div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3.5 text-xs text-amber-800 leading-relaxed">
+                    💡 <strong>Tip:</strong> ISO VG 46 등의 유압유 제형 설계 시 SN150 (30 cSt)과 SN500 (90 cSt)을 위 비율로 혼합하면 목표 점도를 구현할 수 있습니다.
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Multi-Oil Blend -->
+        <div id="tab3" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-5 lg:col-span-2">
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">2~4종 성분 점도 및 Wt% 입력</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left mb-4">
+                        <thead class="bg-slate-100 font-semibold text-slate-600 uppercase">
+                            <tr>
+                                <th class="p-2.5">성분명</th>
+                                <th class="p-2.5">동점도 (cSt)</th>
+                                <th class="p-2.5">중량 비율 (Wt %)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            <tr>
+                                <td class="p-2.5 font-medium">Base Oil #1</td>
+                                <td class="p-2.5"><input type="number" id="t3-v1" value="32.0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                                <td class="p-2.5"><input type="number" id="t3-w1" value="40.0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-medium">Base Oil #2</td>
+                                <td class="p-2.5"><input type="number" id="t3-v2" value="68.0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                                <td class="p-2.5"><input type="number" id="t3-w2" value="45.0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-medium">Base Oil #3</td>
+                                <td class="p-2.5"><input type="number" id="t3-v3" value="150.0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                                <td class="p-2.5"><input type="number" id="t3-w3" value="15.0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-medium">Base Oil #4</td>
+                                <td class="p-2.5"><input type="number" id="t3-v4" value="0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                                <td class="p-2.5"><input type="number" id="t3-w4" value="0.0" oninput="calcTab3()" class="border rounded p-1.5 w-20 md:w-28 text-xs"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="t3-warn" class="hidden text-xs text-amber-600 font-semibold">⚠️ Wt% 총합이 100%가 되도록 조정해주세요. (현재: <span id="t3-sum">100</span>%)</div>
+            </div>
+
+            <div class="card p-5 lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">다성분 혼합 결과</h2>
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
+                        <span class="text-xs font-bold text-indigo-600 uppercase">최종 혼합 동점도</span>
+                        <div class="text-2xl md:text-3xl font-extrabold text-indigo-950 mt-1" id="t3-result">54.20 cSt</div>
+                    </div>
+                </div>
+                <div class="h-44">
+                    <canvas id="tab3Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: Viscosity Index (ASTM D2270) -->
+        <div id="tab4" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-5 lg:col-span-1">
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">ASTM D2270 측정값</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">40°C 동점도 (KV40, cSt)</label>
+                        <input type="number" id="t4-kv40" value="68.0" step="0.1" oninput="calcTab4()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">100°C 동점도 (KV100, cSt)</label>
+                        <input type="number" id="t4-kv100" value="10.5" step="0.1" oninput="calcTab4()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-5 lg:col-span-2">
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">점도지수(VI) 산출 결과</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="bg-slate-900 text-white p-4 rounded-xl text-center md:col-span-1 flex flex-col justify-center items-center">
+                        <span class="text-xs font-semibold text-slate-400">Viscosity Index (VI)</span>
+                        <div class="text-3xl font-extrabold text-blue-400 my-1" id="t4-vi">143</div>
+                        <div class="inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full" id="t4-grade">Very High VI</div>
+                    </div>
+                    <div class="bg-slate-50 border p-3.5 rounded-xl text-xs space-y-2 md:col-span-2">
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">L 값 (VI=0 기준 KV40)</span>
+                            <span class="font-bold" id="t4-l">119.3 cSt</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">H 값 (VI=100 기준 KV40)</span>
+                            <span class="font-bold" id="t4-h">60.1 cSt</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">적용 방정식</span>
+                            <span class="font-bold text-blue-600" id="t4-eq">ASTM D2270 (VI > 100)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-500 bg-slate-100 p-3 rounded-lg leading-relaxed">
+                    * 점도지수가 높을수록 온도 변화에 따른 점도 변화 폭이 작음을 의미하며, Group III 이상 고품질 베이스오일 및 합성유는 VI > 120 이상의 특성을 가집니다.
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: Specific Gravity at 15°C -->
+        <div id="tab5" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-5 lg:col-span-1">
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">측정 데이터 입력</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">측정 온도 (℃)</label>
+                        <input type="number" id="t5-temp" step="any" placeholder="예: 40" value="40" oninput="calcTab5()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">실측 비중</label>
+                        <input type="number" id="t5-sg" step="any" placeholder="예: 0.8450" value="0.8450" oninput="calcTab5()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">유종 (제품 종류)</label>
+                        <select id="t5-product" onchange="calcTab5()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="휘발유">휘발유 (보정계수: 0.00090)</option>
+                            <option value="등유">등유 (보정계수: 0.00075)</option>
+                            <option value="경유">경유 (보정계수: 0.00070)</option>
+                            <option value="윤활유" selected>윤활유 (보정계수: 0.00065)</option>
+                            <option value="중유">중유 (보정계수: 0.00062)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-5 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">15℃ 환산 비중 결과</h2>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-5 text-center">
+                        <span class="text-xs font-bold uppercase text-emerald-600 tracking-wider">15℃ 기준 환산 비중 (SG @ 15℃)</span>
+                        <div class="text-3xl md:text-4xl font-extrabold text-emerald-900 mt-2" id="t5-result">0.8613</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-600">
+                    <strong class="text-slate-800">📌 유종별 온도 보정 계수 안내:</strong>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-2">
+                        <li class="flex justify-between border-b pb-1"><span>휘발유:</span> <span class="font-mono text-slate-800">0.00090 / ℃</span></li>
+                        <li class="flex justify-between border-b pb-1"><span>등유:</span> <span class="font-mono text-slate-800">0.00075 / ℃</span></li>
+                        <li class="flex justify-between border-b pb-1"><span>경유:</span> <span class="font-mono text-slate-800">0.00070 / ℃</span></li>
+                        <li class="flex justify-between border-b pb-1"><span>윤활유:</span> <span class="font-mono text-slate-800">0.00065 / ℃</span></li>
+                        <li class="flex justify-between border-b pb-1"><span>중유:</span> <span class="font-mono text-slate-800">0.00062 / ℃</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // PWA Dynamic Manifest Injector
+        const manifest = {
+            "name": "석유 및 윤활유 계산 솔루션",
+            "short_name": "석유계산기",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#0f172a",
+            "theme_color": "#0f172a",
+            "icons": [{
+                "src": "https://cdn-icons-png.flaticon.com/512/3063/3063822.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }]
+        };
+        const stringManifest = JSON.stringify(manifest);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
+
+        // Refutas Equations
+        function vbi(v) {
+            if (v <= 0) return 0;
+            return 14.534 * Math.log(Math.log(v + 0.8)) + 10.975;
+        }
+
+        function invVbi(vbiVal) {
+            return Math.exp(Math.exp((vbiVal - 10.975) / 14.534)) - 0.8;
+        }
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id$="-btn"]').forEach(el => el.classList.remove('tab-active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId + '-btn').classList.add('tab-active');
+        }
+
+        // TAB 1 logic
+        let chart1;
+        function calcTab1() {
+            const v1 = parseFloat(document.getElementById('t1-v1').value) || 1;
+            const v2 = parseFloat(document.getElementById('t1-v2').value) || 1;
+            const r1 = parseFloat(document.getElementById('t1-r1').value);
+            const r2 = 100 - r1;
+
+            document.getElementById('t1-r1-val').innerText = r1 + '%';
+            document.getElementById('t1-r2-val').innerText = r2 + '%';
+
+            const blendedVbi = (r1 / 100) * vbi(v1) + (r2 / 100) * vbi(v2);
+            const blendedV = invVbi(blendedVbi);
+
+            document.getElementById('t1-result').innerText = blendedV.toFixed(2) + ' cSt';
+            document.getElementById('t1-vbi').innerText = blendedVbi.toFixed(2);
+
+            updateChart1(v1, v2);
+        }
+
+        function updateChart1(v1, v2) {
+            const labels = [];
+            const data = [];
+            for (let i = 0; i <= 100; i += 10) {
+                labels.push(i + '%');
+                const mix = invVbi((i / 100) * vbi(v1) + ((100 - i) / 100) * vbi(v2));
+                data.push(mix.toFixed(2));
+            }
+
+            if (chart1) chart1.destroy();
+            const ctx = document.getElementById('tab1Chart').getContext('2d');
+            chart1 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '혼합 비율별 동점도 (cSt)',
+                        data: data,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // TAB 2 logic
+        function calcTab2() {
+            const v1 = parseFloat(document.getElementById('t2-v1').value) || 1;
+            const v2 = parseFloat(document.getElementById('t2-v2').value) || 1;
+            const vt = parseFloat(document.getElementById('t2-vt').value) || 1;
+
+            const minV = Math.min(v1, v2);
+            const maxV = Math.max(v1, v2);
+
+            if (vt <= minV || vt >= maxV) {
+                document.getElementById('t2-error').classList.remove('hidden');
+                document.getElementById('t2-success').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('t2-error').classList.add('hidden');
+            document.getElementById('t2-success').classList.remove('hidden');
+
+            const vbi1 = vbi(v1), vbi2 = vbi(v2), vbit = vbi(vt);
+            const r1 = ((vbit - vbi2) / (vbi1 - vbi2)) * 100;
+            const r2 = 100 - r1;
+
+            document.getElementById('t2-r1-res').innerText = r1.toFixed(2) + ' %';
+            document.getElementById('t2-r2-res').innerText = r2.toFixed(2) + ' %';
+        }
+
+        // TAB 3 logic
+        let chart3;
+        function calcTab3() {
+            let totalW = 0;
+            let sumVbi = 0;
+            const oils = [];
+
+            for (let i = 1; i <= 4; i++) {
+                const v = parseFloat(document.getElementById('t3-v' + i).value) || 0;
+                const w = parseFloat(document.getElementById('t3-w' + i).value) || 0;
+                if (w > 0 && v > 0) {
+                    sumVbi += (w / 100) * vbi(v);
+                    totalW += w;
+                    oils.push({ name: 'Base Oil #' + i, w: w });
+                }
+            }
+
+            document.getElementById('t3-sum').innerText = totalW.toFixed(1);
+            if (Math.abs(totalW - 100) > 0.1) {
+                document.getElementById('t3-warn').classList.remove('hidden');
+            } else {
+                document.getElementById('t3-warn').classList.add('hidden');
+            }
+
+            const blendedV = invVbi(sumVbi);
+            document.getElementById('t3-result').innerText = blendedV.toFixed(2) + ' cSt';
+
+            if (chart3) chart3.destroy();
+            const ctx = document.getElementById('tab3Chart').getContext('2d');
+            chart3 = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: oils.map(o => o.name),
+                    datasets: [{
+                        data: oils.map(o => o.w),
+                        backgroundColor: ['#2563eb', '#4f46e5', '#06b6d4', '#64748b']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // TAB 4 logic (ASTM D2270)
+        function calcTab4() {
+            const u = parseFloat(document.getElementById('t4-kv40').value) || 1;
+            const y = parseFloat(document.getElementById('t4-kv100').value) || 1;
+
+            let l = 0.8353 * y * y + 14.67 * y - 21.6;
+            let h = 0.1684 * y * y + 11.85 * y - 9.7;
+
+            let vi = 0;
+            if (u > h) {
+                vi = ((l - u) / (l - h)) * 100;
+                document.getElementById('t4-eq').innerText = "ASTM D2270 (VI <= 100)";
+            } else {
+                const n = (Math.log10(h) - Math.log10(u)) / Math.log10(y);
+                vi = ((Math.pow(10, n) - 1) / 0.00715) + 100;
+                document.getElementById('t4-eq').innerText = "ASTM D2270 (VI > 100)";
+            }
+
+            document.getElementById('t4-vi').innerText = Math.round(vi);
+            document.getElementById('t4-l').innerText = l.toFixed(1) + ' cSt';
+            document.getElementById('t4-h').innerText = h.toFixed(1) + ' cSt';
+
+            const gradeEl = document.getElementById('t4-grade');
+            if (vi < 35) { gradeEl.innerText = "Low VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full"; }
+            else if (vi < 80) { gradeEl.innerText = "Medium VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded-full"; }
+            else if (vi < 110) { gradeEl.innerText = "High VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-emerald-600 text-white text-xs font-semibold rounded-full"; }
+            else { gradeEl.innerText = "Very High VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full"; }
+        }
+
+        // TAB 5 logic (15℃ SG Conversion)
+        const coefficients = {
+            '휘발유': 0.00090,
+            '등유': 0.00075,
+            '경유': 0.00070,
+            '윤활유': 0.00065,
+            '중유': 0.00062
+        };
+
+        function calcTab5() {
+            const temp = parseFloat(document.getElementById('t5-temp').value);
+            const sg = parseFloat(document.getElementById('t5-sg').value);
+            const product = document.getElementById('t5-product').value;
+
+            if (isNaN(temp) || isNaN(sg)) {
+                document.getElementById('t5-result').innerText = "-";
+                return;
+            }
+
+            const coef = coefficients[product] || 0;
+            const convertedSG = sg + (coef * (temp - 15));
+
+            document.getElementById('t5-result').innerText = convertedSG.toFixed(4);
+        }
+
+        function exportCSV() {
+            const csvContent = "data:text/csv;charset=utf-8,구분,40°C 동점도(cSt),100°C 동점도(cSt),비율(%)\nBase Oil #1,32.0,5.4,40\nBase Oil #2,68.0,8.8,45\nBase Oil #3,150.0,15.2,15\n혼합유,54.2,8.35,100";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "lubricant_formulation.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        // Initialize calculations
+        window.onload = function() {
+            calcTab1();
+            calcTab2();
+            calcTab3();
+            calcTab4();
+            calcTab5();
+        };
+    </script>
+</body>
+</html>
