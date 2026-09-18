@@ -473,34 +473,68 @@
             });
         }
 
-        // TAB 4 logic (ASTM D2270)
-        function calcTab4() {
-            const u = parseFloat(document.getElementById('t4-kv40').value) || 1;
-            const y = parseFloat(document.getElementById('t4-kv100').value) || 1;
+        // TAB 4 logic (ASTM D2270 Table 1 완전 정밀 계산식)
+function calcTab4() {
+    const u = parseFloat(document.getElementById('t4-kv40').value) || 0;
+    const y = parseFloat(document.getElementById('t4-kv100').value) || 0;
 
-            let l = 0.8353 * y * y + 14.67 * y - 21.6;
-            let h = 0.1684 * y * y + 11.85 * y - 9.7;
+    if (u <= 0 || y <= 0) {
+        document.getElementById('t4-vi').innerText = "-";
+        return;
+    }
 
-            let vi = 0;
-            if (u > h) {
-                vi = ((l - u) / (l - h)) * 100;
-                document.getElementById('t4-eq').innerText = "ASTM D2270 (VI <= 100)";
-            } else {
-                const n = (Math.log10(h) - Math.log10(u)) / Math.log10(y);
-                vi = ((Math.pow(10, n) - 1) / 0.00715) + 100;
-                document.getElementById('t4-eq').innerText = "ASTM D2270 (VI > 100)";
-            }
+    if (y < 2.0) {
+        document.getElementById('t4-vi').innerText = "N/A";
+        document.getElementById('t4-eq').innerText = "KV100은 2.0 cSt 이상이어야 합니다.";
+        return;
+    }
 
-            document.getElementById('t4-vi').innerText = Math.round(vi);
-            document.getElementById('t4-l').innerText = l.toFixed(1) + ' cSt';
-            document.getElementById('t4-h').innerText = h.toFixed(1) + ' cSt';
+    let l = 0, h = 0;
 
-            const gradeEl = document.getElementById('t4-grade');
-            if (vi < 35) { gradeEl.innerText = "Low VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full"; }
-            else if (vi < 80) { gradeEl.innerText = "Medium VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded-full"; }
-            else if (vi < 110) { gradeEl.innerText = "High VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-emerald-600 text-white text-xs font-semibold rounded-full"; }
-            else { gradeEl.innerText = "Very High VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full"; }
-        }
+    // ASTM D2270 Table 1 (Y <= 70) 정밀 보정 다항식
+    if (y <= 70.0) {
+        l = 0.9609 * y * y + 5.621 * y - 4.085;
+        h = 0.2433 * y * y + 6.558 * y - 6.189;
+    } else {
+        // Y > 70 구간 ASTM D2270 원본 공식
+        l = 0.8353 * y * y + 14.67 * y - 21.6;
+        h = 0.1684 * y * y + 11.85 * y - 9.7;
+    }
+
+    let vi = 0;
+
+    // VI 계산 logic
+    if (u > h) {
+        vi = ((l - u) / (l - h)) * 100;
+        document.getElementById('t4-eq').innerText = "ASTM D2270 Procedure A (VI ≤ 100)";
+    } else {
+        // Procedure B (VI > 100)
+        const n = (Math.log10(h) - Math.log10(u)) / Math.log10(y);
+        vi = ((Math.pow(10, n) - 1) / 0.00715) + 100;
+        document.getElementById('t4-eq').innerText = "ASTM D2270 Procedure B (VI > 100)";
+    }
+
+    // 결과 출력
+    document.getElementById('t4-vi').innerText = Math.round(vi);
+    document.getElementById('t4-l').innerText = l.toFixed(2) + ' cSt';
+    document.getElementById('t4-h').innerText = h.toFixed(2) + ' cSt';
+
+    // VI 등급 판정
+    const gradeEl = document.getElementById('t4-grade');
+    if (vi < 35) { 
+        gradeEl.innerText = "Low VI"; 
+        gradeEl.className = "inline-block px-2.5 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full"; 
+    } else if (vi < 80) { 
+        gradeEl.innerText = "Medium VI"; 
+        gradeEl.className = "inline-block px-2.5 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded-full"; 
+    } else if (vi < 110) { 
+        gradeEl.innerText = "High VI"; 
+        gradeEl.className = "inline-block px-2.5 py-0.5 bg-emerald-600 text-white text-xs font-semibold rounded-full"; 
+    } else { 
+        gradeEl.innerText = "Very High VI"; 
+        gradeEl.className = "inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full"; 
+    }
+}
 
         // TAB 5 logic (15℃ SG Conversion)
         const coefficients = {
