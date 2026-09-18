@@ -59,10 +59,6 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="exportCSV()" title="CSV 저장" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 md:px-3 md:py-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    <span class="hidden md:inline">CSV 내보내기</span>
-                </button>
                 <button onclick="window.print()" title="인쇄" class="bg-blue-600 hover:bg-blue-700 text-white p-2 md:px-3 md:py-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     <span class="hidden md:inline">PDF / 인쇄</span>
@@ -76,8 +72,8 @@
         <div class="flex border-b border-slate-200 mb-6 bg-white rounded-xl px-2 pt-1 shadow-sm overflow-x-auto no-scrollbar">
             <button id="tab1-btn" onclick="switchTab('tab1')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap tab-active">1. 2종 기본유 혼합</button>
             <button id="tab2-btn" onclick="switchTab('tab2')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">2. 목표 점도 비율 역계산</button>
-            <button id="tab3-btn" onclick="switchTab('tab3')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">3. 2~4종 다성분 혼합</button>
-            <button id="tab4-btn" onclick="switchTab('tab4')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">4. ASTM D2270 점도지수(VI)</button>
+            <button id="tab3-btn" onclick="switchTab('tab3')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">3. 다성분 혼합</button>
+            <button id="tab4-btn" onclick="switchTab('tab4')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">4. 점도지수(VI) 종합 계산</button>
             <button id="tab5-btn" onclick="switchTab('tab5')" class="py-3 px-4 text-xs md:text-sm font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap">5. 15℃ 비중 환산</button>
         </div>
 
@@ -94,19 +90,23 @@
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Base Oil #2 점도 (cSt)</label>
                         <input type="number" id="t1-v2" value="90.0" step="0.1" oninput="calcTab1()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
+                    
+                    <!-- 수정된 영역: 직접 숫자 입력 폼 -->
                     <div>
-                        <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-                            <span>Base Oil #1 비율 (%)</span>
-                            <span id="t1-r1-val" class="text-blue-600 font-bold">59.07%</span>
+                        <div class="flex justify-between items-center text-xs font-semibold text-slate-600 mb-1">
+                            <label for="t1-r1-num">Base Oil #1 비율 (%)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="t1-r1-num" value="59.07" step="0.01" min="0" max="100" oninput="syncTab1Slider()" class="w-20 border border-slate-300 rounded p-1 text-right text-blue-600 font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                                <span class="text-slate-500">%</span>
+                            </div>
                         </div>
-                        <input type="range" id="t1-r1" min="0" max="100" value="59.07" step="0.01" oninput="calcTab1()" class="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                        <input type="range" id="t1-r1" min="0" max="100" value="59.07" step="0.01" oninput="syncTab1Num()" class="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-1">
+                        <div class="flex justify-between text-xs text-slate-400 mt-2">
                             <span>Oil #2 비율: <span id="t1-r2-val" class="font-semibold text-slate-600">40.93%</span></span>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="card p-5 lg:col-span-2 flex flex-col justify-between">
                 <div>
                     <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">혼합 점도 예측 결과</h2>
@@ -146,7 +146,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="card p-5 lg:col-span-2">
                 <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">필요 혼합 비율 산출</h2>
                 <div id="t2-error" class="hidden bg-red-50 text-red-700 p-4 rounded-lg text-xs mb-4">
@@ -162,16 +161,13 @@
                         <div class="text-2xl md:text-3xl font-bold text-indigo-600 mt-2" id="t2-r2-res">40.93 %</div>
                     </div>
                 </div>
-                <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3.5 text-xs text-emerald-800 leading-relaxed">
-                    ✅ <strong>Olezol 매칭 모드 적용:</strong> Olezol 웹사이트의 혼합 곡선 엔진(Modified Wright Equation)과 100% 동일한 결과값을 산출하도록 보정되었습니다.
-                </div>
             </div>
         </div>
 
         <!-- TAB 3: Multi-Oil Blend -->
         <div id="tab3" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="card p-5 lg:col-span-2">
-                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">2~4종 성분 점도 및 Wt% 입력</h2>
+                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">다성분 점도 및 Wt% 입력</h2>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs text-left mb-4">
                         <thead class="bg-slate-100 font-semibold text-slate-600 uppercase">
@@ -207,7 +203,6 @@
                 </div>
                 <div id="t3-warn" class="hidden text-xs text-amber-600 font-semibold">⚠️ Wt% 총합이 100%가 되도록 조정해주세요. (현재: <span id="t3-sum">100</span>%)</div>
             </div>
-
             <div class="card p-5 lg:col-span-1 flex flex-col justify-between">
                 <div>
                     <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">다성분 혼합 결과</h2>
@@ -222,47 +217,103 @@
             </div>
         </div>
 
-        <!-- TAB 4: Viscosity Index (ASTM D2270) -->
-        <div id="tab4" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="card p-5 lg:col-span-1">
-                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">ASTM D2270 측정값</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">40°C 동점도 (KV40, cSt)</label>
-                        <input type="number" id="t4-kv40" value="66.67" step="0.1" oninput="calcTab4()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <!-- TAB 4: Viscosity Index (ASTM D2270 Comprehensive) -->
+        <div id="tab4" class="tab-content hidden">
+            <!-- Sub-Navigation for Tab 4 -->
+            <div class="flex bg-slate-200 p-1 rounded-xl w-full lg:w-2/3 mx-auto mb-6 shadow-inner gap-1">
+                <button id="vi-mode-1-btn" onclick="switchViMode(1)" class="flex-1 py-2 px-2 md:px-4 text-xs md:text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all">1. 점도지수(VI) 산출</button>
+                <button id="vi-mode-2-btn" onclick="switchViMode(2)" class="flex-1 py-2 px-2 md:px-4 text-xs md:text-sm font-medium rounded-lg text-slate-600 hover:text-blue-600 transition-all">2. 100℃ 동점도 역산</button>
+                <button id="vi-mode-3-btn" onclick="switchViMode(3)" class="flex-1 py-2 px-2 md:px-4 text-xs md:text-sm font-medium rounded-lg text-slate-600 hover:text-blue-600 transition-all">3. 40℃ 동점도 역산</button>
+            </div>
+
+            <!-- Mode 1: Calculate VI -->
+            <div id="vi-mode-1" class="vi-mode-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="card p-5 lg:col-span-1">
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">ASTM D2270 점도 입력</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">40°C 동점도 (KV40, cSt)</label>
+                            <input type="number" id="t4-m1-kv40" value="66.67" step="0.1" oninput="calcTab4Mode1()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">100°C 동점도 (KV100, cSt)</label>
+                            <input type="number" id="t4-m1-kv100" value="11.35" step="0.1" oninput="calcTab4Mode1()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">100°C 동점도 (KV100, cSt)</label>
-                        <input type="number" id="t4-kv100" value="11.35" step="0.1" oninput="calcTab4()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="card p-5 lg:col-span-2">
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">점도지수(VI) 산출 결과</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-slate-900 text-white p-4 rounded-xl text-center md:col-span-1 flex flex-col justify-center items-center">
+                            <span class="text-xs font-semibold text-slate-400">Viscosity Index (VI)</span>
+                            <div class="text-4xl font-extrabold text-blue-400 my-1" id="t4-m1-vi">165</div>
+                            <div class="inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full" id="t4-m1-grade">Very High VI</div>
+                        </div>
+                        <div class="bg-slate-50 border p-3.5 rounded-xl text-xs space-y-2 md:col-span-2 flex flex-col justify-center">
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="text-slate-500">L 값 (VI=0 기준 KV40)</span>
+                                <span class="font-bold text-slate-700" id="t4-m1-l">183.05 cSt</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="text-slate-500">H 값 (VI=100 기준 KV40)</span>
+                                <span class="font-bold text-slate-700" id="t4-m1-h">99.59 cSt</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">적용 방정식</span>
+                                <span class="font-bold text-blue-600" id="t4-m1-eq">ASTM D2270 Procedure B (VI > 100)</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card p-5 lg:col-span-2">
-                <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">점도지수(VI) 산출 결과</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div class="bg-slate-900 text-white p-4 rounded-xl text-center md:col-span-1 flex flex-col justify-center items-center">
-                        <span class="text-xs font-semibold text-slate-400">Viscosity Index (VI)</span>
-                        <div class="text-4xl font-extrabold text-blue-400 my-1" id="t4-vi">165</div>
-                        <div class="inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full" id="t4-grade">Very High VI</div>
-                    </div>
-                    <div class="bg-slate-50 border p-3.5 rounded-xl text-xs space-y-2 md:col-span-2 flex flex-col justify-center">
-                        <div class="flex justify-between border-b pb-1">
-                            <span class="text-slate-500">L 값 (VI=0 기준 KV40)</span>
-                            <span class="font-bold text-slate-700" id="t4-l">183.05 cSt</span>
+            <!-- Mode 2: Calculate KV100 -->
+            <div id="vi-mode-2" class="vi-mode-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="card p-5 lg:col-span-1">
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">100℃ 동점도 역산 입력</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">40°C 동점도 (KV40, cSt)</label>
+                            <input type="number" id="t4-m2-kv40" value="66.67" step="0.1" oninput="calcTab4Mode2()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
-                        <div class="flex justify-between border-b pb-1">
-                            <span class="text-slate-500">H 값 (VI=100 기준 KV40)</span>
-                            <span class="font-bold text-slate-700" id="t4-h">99.59 cSt</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">적용 방정식</span>
-                            <span class="font-bold text-blue-600" id="t4-eq">ASTM D2270 Procedure B (VI > 100)</span>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">목표 점도지수 (Target VI)</label>
+                            <input type="number" id="t4-m2-vi" value="165" step="1" oninput="calcTab4Mode2()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
                 </div>
-                <div class="text-xs text-slate-500 bg-emerald-50 border border-emerald-100 p-3 rounded-lg leading-relaxed">
-                    ✅ <strong>Olezol / ASTM 정밀 매칭:</strong> 150여 개의 ASTM D2270 Table 1 원본 데이터를 내장하고, 라그랑주 3점 보간법을 적용하여 Olezol 계산기와 소수점까지 100% 동일하게 일치하도록 정밀 보정되었습니다.
+                <div class="card p-5 lg:col-span-2 flex flex-col justify-center">
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">100℃ 동점도(KV100) 산출 결과</h2>
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-6 text-center shadow-sm">
+                        <span class="text-xs font-bold uppercase text-indigo-600 tracking-wider">예측 100℃ 동점도 (KV100)</span>
+                        <div class="text-4xl md:text-5xl font-extrabold text-indigo-950 mt-3" id="t4-m2-result">11.35 cSt</div>
+                        <p class="text-xs text-indigo-400 mt-3">* 비선형 이분법(Bisection) 알고리즘을 통한 초정밀 역산 도출</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode 3: Calculate KV40 -->
+            <div id="vi-mode-3" class="vi-mode-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="card p-5 lg:col-span-1">
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">40℃ 동점도 역산 입력</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">100°C 동점도 (KV100, cSt)</label>
+                            <input type="number" id="t4-m3-kv100" value="11.35" step="0.1" oninput="calcTab4Mode3()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">목표 점도지수 (Target VI)</label>
+                            <input type="number" id="t4-m3-vi" value="165" step="1" oninput="calcTab4Mode3()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-5 lg:col-span-2 flex flex-col justify-center">
+                    <h2 class="text-base font-bold mb-4 text-slate-900 border-b pb-2">40℃ 동점도(KV40) 산출 결과</h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center shadow-sm">
+                        <span class="text-xs font-bold uppercase text-blue-600 tracking-wider">예측 40℃ 동점도 (KV40)</span>
+                        <div class="text-4xl md:text-5xl font-extrabold text-blue-900 mt-3" id="t4-m3-result">66.67 cSt</div>
+                        <p class="text-xs text-blue-400 mt-3">* 대수 방정식(Logarithmic Equation) 역함수 전개 적용</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -317,12 +368,27 @@
     </main>
 
     <script>
-        // Tab Switcher
+        // Main Tab Switcher
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('[id$="-btn"]').forEach(el => el.classList.remove('tab-active'));
+            document.querySelectorAll('[id$="-btn"]').forEach(el => {
+                if(el.id.startsWith('tab')) el.classList.remove('tab-active');
+            });
             document.getElementById(tabId).classList.remove('hidden');
             document.getElementById(tabId + '-btn').classList.add('tab-active');
+        }
+
+        // Sub Tab Switcher (For Tab 4 - VI Calculators)
+        function switchViMode(mode) {
+            document.querySelectorAll('.vi-mode-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="vi-mode-"][id$="-btn"]').forEach(el => {
+                el.classList.remove('bg-white', 'shadow-sm', 'text-blue-600', 'font-bold');
+                el.classList.add('text-slate-600', 'font-medium');
+            });
+            document.getElementById('vi-mode-' + mode).classList.remove('hidden');
+            const btn = document.getElementById('vi-mode-' + mode + '-btn');
+            btn.classList.remove('text-slate-600', 'font-medium');
+            btn.classList.add('bg-white', 'shadow-sm', 'text-blue-600', 'font-bold');
         }
 
         // ==========================================
@@ -341,13 +407,28 @@
 
         // TAB 1 logic
         let chart1;
+        
+        // 텍스트 숫자 입력 연동 
+        function syncTab1Slider() {
+            let val = parseFloat(document.getElementById('t1-r1-num').value) || 0;
+            if (val > 100) val = 100;
+            if (val < 0) val = 0;
+            document.getElementById('t1-r1').value = val;
+            calcTab1();
+        }
+        
+        // 슬라이더 바 연동
+        function syncTab1Num() {
+            document.getElementById('t1-r1-num').value = document.getElementById('t1-r1').value;
+            calcTab1();
+        }
+
         function calcTab1() {
             const v1 = parseFloat(document.getElementById('t1-v1').value) || 1;
             const v2 = parseFloat(document.getElementById('t1-v2').value) || 1;
-            const r1 = parseFloat(document.getElementById('t1-r1').value);
+            const r1 = parseFloat(document.getElementById('t1-r1').value) || 0;
             const r2 = 100 - r1;
 
-            document.getElementById('t1-r1-val').innerText = r1.toFixed(2) + '%';
             document.getElementById('t1-r2-val').innerText = r2.toFixed(2) + '%';
 
             const blendedVbi = (r1 / 100) * vbi(v1) + (r2 / 100) * vbi(v2);
@@ -456,7 +537,7 @@
         }
 
         // ==========================================
-        // ASTM D2270 TABLE 1 EXACT DATA MAP (Y <= 70)
+        // ASTM D2270 VISCOSITY INDEX FUNCTIONS (TAB 4)
         // ==========================================
         const astmTable = [
             [2.0, 7.994, 6.394], [2.1, 8.640, 6.894], [2.2, 9.309, 7.410], [2.3, 10.00, 7.944], [2.4, 10.71, 8.496],
@@ -507,7 +588,7 @@
             [70.0, 4905.0, 1558.0]
         ];
 
-        // 3-Point Lagrange Quadratic Interpolation (Olezol/ASTM Match)
+        // Lagrange Interpolation
         function interpolateLH(y) {
             let closest = [...astmTable].sort((a, b) => Math.abs(a[0] - y) - Math.abs(b[0] - y)).slice(0, 3);
             closest.sort((a, b) => a[0] - b[0]);
@@ -527,64 +608,120 @@
             return { l, h };
         }
 
-        // TAB 4 logic (ASTM D2270 Table 1 완전 정밀 계산식)
-        function calcTab4() {
-            const u = parseFloat(document.getElementById('t4-kv40').value) || 0;
-            const y = parseFloat(document.getElementById('t4-kv100').value) || 0;
+        function getL_H(y) {
+            if (y <= 70.0) {
+                return interpolateLH(y);
+            } else {
+                return {
+                    l: 0.8353 * y * y + 14.67 * y - 216.0,
+                    h: 0.1684 * y * y + 11.85 * y - 97.0
+                };
+            }
+        }
+
+        function getVI_Value(u, y) {
+            if (u <= 0 || y < 2.0) return null;
+            const {l, h} = getL_H(y);
+            if (u > h) {
+                return ((l - u) / (l - h)) * 100;
+            } else {
+                const n = (Math.log10(h) - Math.log10(u)) / Math.log10(y);
+                return ((Math.pow(10, n) - 1) / 0.00715) + 100;
+            }
+        }
+
+        // Mode 1: 정방향 VI 산출
+        function calcTab4Mode1() {
+            const u = parseFloat(document.getElementById('t4-m1-kv40').value) || 0;
+            const y = parseFloat(document.getElementById('t4-m1-kv100').value) || 0;
 
             if (u <= 0 || y <= 0) {
-                document.getElementById('t4-vi').innerText = "-";
+                document.getElementById('t4-m1-vi').innerText = "-";
                 return;
             }
 
             if (y < 2.0) {
-                document.getElementById('t4-vi').innerText = "N/A";
-                document.getElementById('t4-eq').innerText = "KV100은 2.0 cSt 이상이어야 합니다.";
+                document.getElementById('t4-m1-vi').innerText = "N/A";
+                document.getElementById('t4-m1-eq').innerText = "KV100은 2.0 cSt 이상이어야 합니다.";
                 return;
             }
 
-            let l = 0, h = 0;
+            const {l, h} = getL_H(y);
+            const vi = getVI_Value(u, y);
 
-            if (y <= 70.0) {
-                // Table 1 라그랑주 보간 적용 (Olezol과 100% 매칭)
-                const lh = interpolateLH(y);
-                l = lh.l;
-                h = lh.h;
-            } else {
-                // Y > 70 구간 ASTM D2270 원본 공식
-                l = 0.8353 * y * y + 14.67 * y - 216.0;
-                h = 0.1684 * y * y + 11.85 * y - 97.0;
-            }
+            document.getElementById('t4-m1-eq').innerText = u > h ? "ASTM D2270 Procedure A (VI ≤ 100)" : "ASTM D2270 Procedure B (VI > 100)";
+            document.getElementById('t4-m1-vi').innerText = Math.round(vi);
+            document.getElementById('t4-m1-l').innerText = l.toFixed(2) + ' cSt';
+            document.getElementById('t4-m1-h').innerText = h.toFixed(2) + ' cSt';
 
-            let vi = 0;
-
-            if (u > h) {
-                vi = ((l - u) / (l - h)) * 100;
-                document.getElementById('t4-eq').innerText = "ASTM D2270 Procedure A (VI ≤ 100)";
-            } else {
-                const n = (Math.log10(h) - Math.log10(u)) / Math.log10(y);
-                vi = ((Math.pow(10, n) - 1) / 0.00715) + 100;
-                document.getElementById('t4-eq').innerText = "ASTM D2270 Procedure B (VI > 100)";
-            }
-
-            document.getElementById('t4-vi').innerText = Math.round(vi);
-            document.getElementById('t4-l').innerText = l.toFixed(2) + ' cSt';
-            document.getElementById('t4-h').innerText = h.toFixed(2) + ' cSt';
-
-            const gradeEl = document.getElementById('t4-grade');
+            const gradeEl = document.getElementById('t4-m1-grade');
             if (vi < 35) { 
-                gradeEl.innerText = "Low VI"; 
-                gradeEl.className = "inline-block px-2.5 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full"; 
+                gradeEl.innerText = "Low VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full"; 
             } else if (vi < 80) { 
-                gradeEl.innerText = "Medium VI"; 
-                gradeEl.className = "inline-block px-2.5 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded-full"; 
+                gradeEl.innerText = "Medium VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded-full"; 
             } else if (vi < 110) { 
-                gradeEl.innerText = "High VI"; 
-                gradeEl.className = "inline-block px-2.5 py-0.5 bg-emerald-600 text-white text-xs font-semibold rounded-full"; 
+                gradeEl.innerText = "High VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-emerald-600 text-white text-xs font-semibold rounded-full"; 
             } else { 
-                gradeEl.innerText = "Very High VI"; 
-                gradeEl.className = "inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full"; 
+                gradeEl.innerText = "Very High VI"; gradeEl.className = "inline-block px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full"; 
             }
+        }
+
+        // Mode 2: KV100 역산 (Bisection 이분법 알고리즘)
+        function calcTab4Mode2() {
+            const u = parseFloat(document.getElementById('t4-m2-kv40').value) || 0;
+            const target_vi = parseFloat(document.getElementById('t4-m2-vi').value);
+
+            if (u <= 0 || isNaN(target_vi)) {
+                document.getElementById('t4-m2-result').innerText = "- cSt";
+                return;
+            }
+
+            let y_low = 2.0;
+            let y_high = u + 500; // 충분한 상한값 설정
+            let y_mid = y_low;
+
+            for (let i = 0; i < 100; i++) {
+                y_mid = (y_low + y_high) / 2;
+                let current_vi = getVI_Value(u, y_mid);
+                
+                if (current_vi === null) break;
+                
+                if (current_vi < target_vi) {
+                    y_low = y_mid; // VI를 높이려면 KV100(y)을 증가시켜야 함
+                } else {
+                    y_high = y_mid;
+                }
+                
+                if (Math.abs(y_high - y_low) < 0.00001) break;
+            }
+
+            document.getElementById('t4-m2-result').innerText = y_mid.toFixed(2) + ' cSt';
+        }
+
+        // Mode 3: KV40 역산 (로그 방정식 역함수 도출)
+        function calcTab4Mode3() {
+            const y = parseFloat(document.getElementById('t4-m3-kv100').value) || 0;
+            const target_vi = parseFloat(document.getElementById('t4-m3-vi').value);
+
+            if (y < 2.0 || isNaN(target_vi)) {
+                document.getElementById('t4-m3-result').innerText = "- cSt";
+                return;
+            }
+
+            const {l, h} = getL_H(y);
+            let u = 0;
+
+            if (target_vi <= 100) {
+                // 선형 수식 역산: U = L - (VI / 100) * (L - H)
+                u = l - (target_vi / 100) * (l - h);
+            } else {
+                // 대수 수식 역산: log U = log H - N * log Y
+                const n = Math.log10((target_vi - 100) * 0.00715 + 1);
+                const logU = Math.log10(h) - (n * Math.log10(y));
+                u = Math.pow(10, logU);
+            }
+
+            document.getElementById('t4-m3-result').innerText = u.toFixed(2) + ' cSt';
         }
 
         // TAB 5 logic (15℃ SG Conversion)
@@ -612,22 +749,14 @@
             document.getElementById('t5-result').innerText = convertedSG.toFixed(4);
         }
 
-        function exportCSV() {
-            const csvContent = "data:text/csv;charset=utf-8,구분,동점도(cSt),비율(%)\nBase Oil #1,30.0,59.07\nBase Oil #2,90.0,40.93\n혼합유,46.0,100";
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "lubricant_formulation.csv");
-            document.body.appendChild(link);
-            link.click();
-        }
-
-        // Initialize calculations
+        // Initialize all calculations
         window.onload = function() {
             calcTab1();
             calcTab2();
             calcTab3();
-            calcTab4();
+            calcTab4Mode1();
+            calcTab4Mode2();
+            calcTab4Mode3();
             calcTab5();
         };
     </script>
